@@ -154,22 +154,32 @@ def test():
 #main loop    
 def main():
     #window vars
-    FPS = 60
+    FPS = 30
     pivot = False
     win_width = 800
     win_height = 600
     
     #sprite vars
+    mouse_down = False
+    
+    displayWindow = pygame.Rect(250, 150, 300, 300)
+    
     zoomVal = -5 #current camera distance to center
     zoom_window_interval = .2
     
     zoom_up_hitbox = pygame.Rect(70, 30, 60, 60) 
     zoom_down_hitbox = pygame.Rect(70, 510, 60, 60)
+    zoom_up_pressed = False
+    zoom_down_pressed = False
     
     zoom_bar_x = -5
     zoom_bar_y = 0
     zoom_bar_interval = 0.35
     zoom_bar_limits = (zoom_bar_interval*9, zoom_bar_interval*-9) #9 levels up, 9 levels down
+    
+    hwheelAnimationFrame = 0
+    hwheelHitbox = pygame.Rect(220, 500, 360, 50)
+    mouseDirection = None
       
     #setup pygame
     pygame.init()
@@ -187,11 +197,15 @@ def main():
     
     #load all textures
     zoomInID = loadTexture("zoomIn.png")
+    zoomInPressedID = loadTexture("zoomInPressed.png")
     zoomOutID = loadTexture("zoomOut.png")
+    zoomOutPressedID = loadTexture("zoomOutPressed.png")
     zoomBarID = loadTexture("zoomBar.png")
     zoomLevelID = loadTexture("zoomLevel.png")
+    wheelAnimation = [loadTexture("wheelFrame1.png"), loadTexture("wheelFrame2.png"), loadTexture("wheelFrame3.png")]
     
     while True:
+        mouseX, mouseY = pygame.mouse.get_pos()
         #resetup viewport
         glViewport(0,0,win_width,win_height)
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
@@ -206,7 +220,6 @@ def main():
 
         #event manipulation
         for event in pygame.event.get():
-            mouseX, mouseY = pygame.mouse.get_pos()
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
@@ -218,26 +231,18 @@ def main():
                     
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
+                    mouse_down = True
                     pivot = True
-                if event.button == 4:
-                    zoomVal += 1
-                if event.button == 5:
-                    zoomVal -= 1
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
+                    mouse_down = False
                     pivot = False
+                    zoom_up_pressed, zoom_down_pressed = False, False
 
-                    if zoom_up_hitbox.collidepoint((mouseX, mouseY)):
-                        if zoom_bar_y < zoom_bar_limits[0]:
-                            zoom_bar_y += zoom_bar_interval
-                            zoomVal += zoom_window_interval
-                    elif zoom_down_hitbox.collidepoint((mouseX, mouseY)):
-                        if zoom_bar_y > zoom_bar_limits[1]:
-                            zoom_bar_y -= zoom_bar_interval
-                            zoomVal -= zoom_window_interval
                            
             if event.type == pygame.MOUSEMOTION:
-                if pivot and mouseX > 200:
+                mouseDirection = event.rel
+                if pivot and displayWindow.collidepoint((mouseX, mouseY)):
                     glRotatef(event.rel[1], 1, 0, 0)
                     glRotatef(event.rel[0], 0, 1, 0)
                 #----- USED FOR TESTING HITBOXES
@@ -247,6 +252,32 @@ def main():
                     #glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
                     #test()
                 #-----
+        if mouse_down:
+            if zoom_up_hitbox.collidepoint((mouseX, mouseY)):
+                if zoom_bar_y < zoom_bar_limits[0]:
+                    zoom_bar_y += zoom_bar_interval
+                    zoomVal += zoom_window_interval
+                    zoom_up_pressed = True
+            elif zoom_down_hitbox.collidepoint((mouseX, mouseY)):
+                if zoom_bar_y > zoom_bar_limits[1]:
+                    zoom_bar_y -= zoom_bar_interval
+                    zoomVal -= zoom_window_interval
+                    zoom_down_pressed = True
+                    
+            if hwheelHitbox.collidepoint((mouseX, mouseY)):
+                if mouseDirection and mouseDirection[0] != 0:
+                    if mouseDirection[0] > 1:
+                        glRotatef(2, 0, 1, 0)
+                        hwheelAnimationFrame += 1
+                        if hwheelAnimationFrame >= len(wheelAnimation):
+                            hwheelAnimationFrame = 0
+                    elif mouseDirection[0] < 1:
+                        glRotatef(-2, 0, 1, 0)
+                        hwheelAnimationFrame -= 1
+                        if hwheelAnimationFrame < 0:
+                            hwheelAnimationFrame = len(wheelAnimation) - 1
+                    
+        
                 
         #clears buffer
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
@@ -276,13 +307,13 @@ def main():
         #draw all 2D sprites
         glMatrixMode(GL_MODELVIEW) 
         glLoadIdentity()
-        drawQuad(-5, 4, zoomInID, ((1/2),(1/2)))
-        drawQuad(-5, -4, zoomOutID, ((1/2),(1/2)))
+        drawQuad(-5, 4, zoomInPressedID, ((1/2),(1/2))) if zoom_up_pressed else drawQuad(-5, 4, zoomInID, ((1/2),(1/2))) 
+        drawQuad(-5, -4, zoomOutPressedID, ((1/2),(1/2))) if zoom_down_pressed else drawQuad(-5, -4, zoomOutID, ((1/2),(1/2)))
         drawQuad(-5, 0, zoomLevelID, (.8,3.5))
         drawQuad(zoom_bar_x, zoom_bar_y, zoomBarID, (1.3,(1/5)))
+        drawQuad(0, -4.5, wheelAnimation[hwheelAnimationFrame], (3,1))
 
         #render frame (matching FPS limits)
         pygame.display.flip()
-        clock.tick(FPS)
-        
+        clock.tick(FPS)       
 main()
