@@ -179,6 +179,8 @@ def main():
     
     hwheelAnimationFrame = 0
     hwheelHitbox = pygame.Rect(220, 500, 360, 50)
+    vwheelAnimationFrame = 0
+    vwheelHitbox = pygame.Rect(650, 85, 50, 360) 
     mouseDirection = None
       
     #setup pygame
@@ -202,10 +204,14 @@ def main():
     zoomOutPressedID = loadTexture("zoomOutPressed.png")
     zoomBarID = loadTexture("zoomBar.png")
     zoomLevelID = loadTexture("zoomLevel.png")
-    wheelAnimation = [loadTexture("wheelFrame1.png"), loadTexture("wheelFrame2.png"), loadTexture("wheelFrame3.png")]
+    background1ID = loadTexture("background1.png")
+    hwheelAnimation = [loadTexture("wheelFrame1.png"), loadTexture("wheelFrame2.png"), loadTexture("wheelFrame3.png")]
+    vwheelAnimation = [loadTexture("wheelFrame1V.png"), loadTexture("wheelFrame2V.png"), loadTexture("wheelFrame3V.png")]
     
     while True:
         mouseX, mouseY = pygame.mouse.get_pos()
+        
+        
         #resetup viewport
         glViewport(0,0,win_width,win_height)
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
@@ -216,7 +222,6 @@ def main():
         glLoadIdentity()
         gluPerspective(100, aspect, 1, 10) #3D camera
         glMatrixMode(GL_MODELVIEW)
-
 
         #event manipulation
         for event in pygame.event.get():
@@ -269,13 +274,26 @@ def main():
                     if mouseDirection[0] > 1:
                         glRotatef(2, 0, 1, 0)
                         hwheelAnimationFrame += 1
-                        if hwheelAnimationFrame >= len(wheelAnimation):
+                        if hwheelAnimationFrame >= len(hwheelAnimation):
                             hwheelAnimationFrame = 0
                     elif mouseDirection[0] < 1:
                         glRotatef(-2, 0, 1, 0)
                         hwheelAnimationFrame -= 1
                         if hwheelAnimationFrame < 0:
-                            hwheelAnimationFrame = len(wheelAnimation) - 1
+                            hwheelAnimationFrame = len(hwheelAnimation) - 1
+                            
+            if vwheelHitbox.collidepoint((mouseX, mouseY)):
+                if mouseDirection and mouseDirection[1] != 0:
+                    if mouseDirection[1] > 2:
+                        glRotatef(3, 1, 0, 0)
+                        vwheelAnimationFrame += 1
+                        if vwheelAnimationFrame >= len(vwheelAnimation):
+                            vwheelAnimationFrame = 0
+                    elif mouseDirection[1] < -2:
+                        glRotatef(-3, 1, 0, 0)
+                        vwheelAnimationFrame -= 1
+                        if vwheelAnimationFrame < 0:
+                            vwheelAnimationFrame = len(vwheelAnimation) - 1
                     
         
                 
@@ -299,6 +317,7 @@ def main():
         
         #now switch to drawing 2D sprites
         glClear(GL_DEPTH_BUFFER_BIT)
+      
         glMatrixMode (GL_PROJECTION) 
         glLoadIdentity() 
         glOrtho(-aspect*5, aspect*5, -5, 5, -1, 50) #2D viewport
@@ -307,11 +326,17 @@ def main():
         #draw all 2D sprites
         glMatrixMode(GL_MODELVIEW) 
         glLoadIdentity()
+        
+        drawQuad(-5, 0, background1ID, (2,5))
+        drawQuad(5, 0, background1ID, (2,5))
+        drawQuad(0, 4, background1ID, (3,1.5))
+        drawQuad(0, -4, background1ID, (3,1.5))
         drawQuad(-5, 4, zoomInPressedID, ((1/2),(1/2))) if zoom_up_pressed else drawQuad(-5, 4, zoomInID, ((1/2),(1/2))) 
         drawQuad(-5, -4, zoomOutPressedID, ((1/2),(1/2))) if zoom_down_pressed else drawQuad(-5, -4, zoomOutID, ((1/2),(1/2)))
         drawQuad(-5, 0, zoomLevelID, (.8,3.5))
         drawQuad(zoom_bar_x, zoom_bar_y, zoomBarID, (1.3,(1/5)))
-        drawQuad(0, -4.5, wheelAnimation[hwheelAnimationFrame], (3,1))
+        drawQuad(0, -4.5, hwheelAnimation[hwheelAnimationFrame], (3,1))
+        drawQuad(5.5, .5, vwheelAnimation[vwheelAnimationFrame], (1,3))
 
         #render frame (matching FPS limits)
         pygame.display.flip()
