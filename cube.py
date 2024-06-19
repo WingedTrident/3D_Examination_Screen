@@ -6,6 +6,19 @@ from OpenGL.GLU import *
 from PIL import Image
 from numpy import array
 
+
+grid_lines= (
+    (0, 2, 0),
+    (0, -2, 0)
+)
+
+grid_edges = (
+    (-2,2)
+)
+
+
+
+
 #cubes vertices
 vertices= (
     (1, -1, -1),
@@ -163,6 +176,8 @@ def main():
     mouse_down = False
     
     displayWindow = pygame.Rect(250, 150, 300, 300)
+    cursorX = 0 #openGL coords
+    cursorY = 0 #openGL coords
     
     zoomVal = -5 #current camera distance to center
     zoom_window_interval = .2
@@ -196,6 +211,10 @@ def main():
     glTranslatef(0.0,0.0, zoomVal)
     glMatrixMode(GL_MODELVIEW)  
     modelMatrix = glGetFloatv(GL_MODELVIEW_MATRIX)
+    orthoL = -aspect*5
+    orthoR = aspect*5
+    orthoB = -5
+    orthoT = 5
     
     #load all textures
     zoomInID = loadTexture("zoomIn.png")
@@ -204,25 +223,39 @@ def main():
     zoomOutPressedID = loadTexture("zoomOutPressed.png")
     zoomBarID = loadTexture("zoomBar.png")
     zoomLevelID = loadTexture("zoomLevel.png")
+    cursorID = loadTexture("cursor.png")
     background1ID = loadTexture("background1.png")
     hwheelAnimation = [loadTexture("wheelFrame1.png"), loadTexture("wheelFrame2.png"), loadTexture("wheelFrame3.png")]
     vwheelAnimation = [loadTexture("wheelFrame1V.png"), loadTexture("wheelFrame2V.png"), loadTexture("wheelFrame3V.png")]
     
+    change = 0
     while True:
         mouseX, mouseY = pygame.mouse.get_pos()
-        
         
         #resetup viewport
         glViewport(0,0,win_width,win_height)
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
         
-        #push identity matrix to manipulate 3D
+        #draw grid lines
+        glPushMatrix()   
+        glBegin(GL_LINES)
+        for i in range(-6,7,1):
+            glVertex3f(i-(0.5*i),-5,0)
+            glVertex3f(i-(0.5*i),5,0)
+            
+            glVertex3f(-5,i-(0.5*i),0)
+            glVertex3f(5,i-(0.5*i),0)      
+        glEnd()
+        glPopMatrix()
+    
+        #push identity matrix to manipulate 3D part
         glPushMatrix()
+        
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         gluPerspective(100, aspect, 1, 10) #3D camera
         glMatrixMode(GL_MODELVIEW)
-
+        
         #event manipulation
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -242,14 +275,15 @@ def main():
                 if event.button == 1:
                     mouse_down = False
                     pivot = False
-                    zoom_up_pressed, zoom_down_pressed = False, False
-
-                           
+                    zoom_up_pressed, zoom_down_pressed = False, False              
             if event.type == pygame.MOUSEMOTION:
                 mouseDirection = event.rel
-                if pivot and displayWindow.collidepoint((mouseX, mouseY)):
-                    glRotatef(event.rel[1], 1, 0, 0)
-                    glRotatef(event.rel[0], 0, 1, 0)
+                if displayWindow.collidepoint((mouseX, mouseY)):
+                    cursorX = ((mouseX / win_width) * (orthoR - (orthoL))) + orthoL
+                    cursorY = ((mouseY / win_height) * (orthoB - (orthoT))) + orthoT
+                    if pivot:
+                        glRotatef(event.rel[1], 1, 0, 0)
+                        glRotatef(event.rel[0], 0, 1, 0)
                 #----- USED FOR TESTING HITBOXES
                 #if x.collidepoint((mouseX, mouseY)):
                     #glMatrixMode(GL_MODELVIEW)
@@ -271,13 +305,13 @@ def main():
                     
             if hwheelHitbox.collidepoint((mouseX, mouseY)):
                 if mouseDirection and mouseDirection[0] != 0:
-                    if mouseDirection[0] > 1:
-                        glRotatef(2, 0, 1, 0)
+                    if mouseDirection[0] > 2:
+                        glRotatef(3, 0, 1, 0)
                         hwheelAnimationFrame += 1
                         if hwheelAnimationFrame >= len(hwheelAnimation):
                             hwheelAnimationFrame = 0
-                    elif mouseDirection[0] < 1:
-                        glRotatef(-2, 0, 1, 0)
+                    elif mouseDirection[0] < -2:
+                        glRotatef(-3, 0, 1, 0)
                         hwheelAnimationFrame -= 1
                         if hwheelAnimationFrame < 0:
                             hwheelAnimationFrame = len(hwheelAnimation) - 1
@@ -285,21 +319,19 @@ def main():
             if vwheelHitbox.collidepoint((mouseX, mouseY)):
                 if mouseDirection and mouseDirection[1] != 0:
                     if mouseDirection[1] > 2:
+                        change += 1
                         glRotatef(3, 1, 0, 0)
                         vwheelAnimationFrame += 1
                         if vwheelAnimationFrame >= len(vwheelAnimation):
                             vwheelAnimationFrame = 0
                     elif mouseDirection[1] < -2:
+                        change -= 1
                         glRotatef(-3, 1, 0, 0)
                         vwheelAnimationFrame -= 1
                         if vwheelAnimationFrame < 0:
                             vwheelAnimationFrame = len(vwheelAnimation) - 1
-                    
         
-                
-        #clears buffer
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-        
+           
         #apply transformations and save new matrix
         glMultMatrixf(modelMatrix)
         modelMatrix = glGetFloatv(GL_MODELVIEW_MATRIX)
@@ -309,7 +341,7 @@ def main():
         glTranslatef(0, 0, zoomVal)
         glMultMatrixf(modelMatrix)
         
-        #draw 3D elements
+        #draw 3D elements    
         Cube()
 
         #reset stack for next loop
@@ -320,13 +352,25 @@ def main():
       
         glMatrixMode (GL_PROJECTION) 
         glLoadIdentity() 
-        glOrtho(-aspect*5, aspect*5, -5, 5, -1, 50) #2D viewport
+        glOrtho(orthoL, orthoR, orthoB, orthoT, -1, 50) #2D viewport
         
 
         #draw all 2D sprites
         glMatrixMode(GL_MODELVIEW) 
         glLoadIdentity()
         
+        #cursor lines
+        glBegin(GL_LINES)
+        glColor3f(1,0,0)
+        glVertex3f(cursorX,-5,0)
+        glVertex3f(cursorX,5,0)
+        
+        glVertex3f(-5,cursorY,0)
+        glVertex3f(5,cursorY,0)
+        glColor3f(1,1,1)
+        glEnd()
+        
+        #sprite drawing
         drawQuad(-5, 0, background1ID, (2,5))
         drawQuad(5, 0, background1ID, (2,5))
         drawQuad(0, 4, background1ID, (3,1.5))
@@ -334,6 +378,7 @@ def main():
         drawQuad(-5, 4, zoomInPressedID, ((1/2),(1/2))) if zoom_up_pressed else drawQuad(-5, 4, zoomInID, ((1/2),(1/2))) 
         drawQuad(-5, -4, zoomOutPressedID, ((1/2),(1/2))) if zoom_down_pressed else drawQuad(-5, -4, zoomOutID, ((1/2),(1/2)))
         drawQuad(-5, 0, zoomLevelID, (.8,3.5))
+        drawQuad(cursorX, cursorY, cursorID, (1/10,1/10))
         drawQuad(zoom_bar_x, zoom_bar_y, zoomBarID, (1.3,(1/5)))
         drawQuad(0, -4.5, hwheelAnimation[hwheelAnimationFrame], (3,1))
         drawQuad(5.5, .5, vwheelAnimation[vwheelAnimationFrame], (1,3))
