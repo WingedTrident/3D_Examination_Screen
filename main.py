@@ -6,7 +6,7 @@ from OpenGL.GLU import *
 from PIL import Image
 from numpy import array
 
-from visuals import Cube, drawQuad
+from visuals import Cube, drawQuad, Grid
 from functions import *
 
 #function to load texture from image file    
@@ -56,6 +56,7 @@ def test():
         pygame.draw.rect(surface, color, x)
         pygame.draw.rect(surface, color, y)
         pygame.display.flip()
+        
 
 #main loop    
 def main():
@@ -131,14 +132,7 @@ def main():
         
         #draw grid lines
         glPushMatrix()   
-        glBegin(GL_LINES)
-        for i in range(-6,7,1):
-            glVertex3f(i-(0.5*i),-5,0)
-            glVertex3f(i-(0.5*i),5,0)
-            
-            glVertex3f(-5,i-(0.5*i),0)
-            glVertex3f(5,i-(0.5*i),0)      
-        glEnd()
+        Grid()
         glPopMatrix()
     
         #push identity matrix to manipulate 3D part
@@ -159,7 +153,6 @@ def main():
                     glRotatef(-1, 1, 0, 0)
                 if event.key == pygame.K_RIGHT:
                     glRotatef(30, 0, 1, 0)
-                    
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     mouse_down = True
@@ -227,7 +220,7 @@ def main():
                         rotate_all_hitboxes('x',rotDeg)
         
         
-        check_if_hit(cursorX,cursorY)
+        check_if_hit(cursorX,cursorY,((zoomVal+5)//zoom_window_interval))
 
           
         #apply transformations and save new matrix

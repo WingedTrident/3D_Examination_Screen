@@ -1,7 +1,7 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
-
 from cube import vertices, edges, surfaces, colors
+
 #render for cube
 def Cube():
     #line render
@@ -43,4 +43,14 @@ def drawQuad(centerX, centerY, textureID, scale=(1,1)):
         glVertex2f((centerX + verts[i][0]), (centerY + verts[i][1]))
     glEnd()
     
-    glDisable(GL_TEXTURE_2D) 
+    glDisable(GL_TEXTURE_2D)
+    
+def Grid():
+    glBegin(GL_LINES)
+    for i in range(-6,7,1):
+        glVertex3f(i-(0.5*i),-5,0)
+        glVertex3f(i-(0.5*i),5,0)
+            
+        glVertex3f(-5,i-(0.5*i),0)
+        glVertex3f(5,i-(0.5*i),0)      
+    glEnd() 
