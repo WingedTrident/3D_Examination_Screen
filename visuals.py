@@ -44,7 +44,8 @@ def drawQuad(centerX, centerY, textureID, scale=(1,1)):
     glEnd()
     
     glDisable(GL_TEXTURE_2D)
-    
+
+#render for grid   
 def Grid():
     glBegin(GL_LINES)
     for i in range(-6,7,1):
