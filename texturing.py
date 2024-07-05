@@ -54,6 +54,6 @@ def drawText(x, y, text, charNum):
     
     #write characters one by one
     if charNum != len(text):
-        return charNum + 1
+        return charNum + 2
     else:
         return charNum

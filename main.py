@@ -61,7 +61,8 @@ def main():
     orthoL = -aspect*5
     orthoR = aspect*5
     orthoB = -5
-    orthoT = 5
+    orthoT = 5 
+    print(win_width/win_height, orthoL, orthoR, orthoB, orthoT)
     
     #load all textures
     zoomInID = loadTexture("zoomIn.png")
@@ -93,9 +94,8 @@ def main():
         
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(100, aspect, 1, 10) #3D camera
+        gluPerspective(110, aspect, 1, 10) #3D camera
         glMatrixMode(GL_MODELVIEW)
-        
         #event manipulation
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
