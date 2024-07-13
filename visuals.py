@@ -1,6 +1,6 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from cube import vertices, edges, surfaces, colors
+from cube import *
 
 #render for cube
 def Cube():

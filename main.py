@@ -62,7 +62,6 @@ def main():
     orthoR = aspect*5
     orthoB = -5
     orthoT = 5 
-    print(win_width/win_height, orthoL, orthoR, orthoB, orthoT)
     
     #load all textures
     zoomInID = loadTexture("zoomIn.png")
@@ -76,7 +75,6 @@ def main():
     textboxID = loadTexture("textbox.png")
     hwheelAnimation = [loadTexture("wheelFrame1.png"), loadTexture("wheelFrame2.png"), loadTexture("wheelFrame3.png")]
     vwheelAnimation = [loadTexture("wheelFrame1V.png"), loadTexture("wheelFrame2V.png"), loadTexture("wheelFrame3V.png")]
-    
     while True:
         mouseX, mouseY = pygame.mouse.get_pos()
         
@@ -109,18 +107,19 @@ def main():
                     mouse_down = False
                     zoom_up_pressed, zoom_down_pressed = False, False 
                     if displayWindow.collidepoint((mouseX, mouseY)):
-                        selected = check_if_hit(cursorX,cursorY,((zoomVal+5)//zoom_window_interval)) #get which part of the display was hit
+                        selected = check_if_hit(cursorX,cursorY,((zoomVal+5))) #get which part of the display was hit
                         charNum = 0 #reset textbox
                         if selected == None:
                             selected = True
                             selectedText = "There appears to be nothing at this location."
                         else:
-                            selectedText = f"This side of the cube appears to be {selected}."             
+                            selectedText = f"This side of the cube appears to be {selected}."   
+                                 
             if event.type == pygame.MOUSEMOTION:
                 mouseDirection = event.rel
                 if displayWindow.collidepoint((mouseX, mouseY)):
                     cursorX = ((mouseX / win_width) * (orthoR - (orthoL))) + orthoL
-                    cursorY = ((mouseY / win_height) * (orthoB - (orthoT))) + orthoT
+                    cursorY = ((mouseY / win_height) * (orthoB - (orthoT))) + orthoT 
         #if mouse is held down           
         if mouse_down:
             #zoom buttons
@@ -129,11 +128,13 @@ def main():
                     zoom_bar_y += zoom_bar_interval
                     zoomVal += zoom_window_interval
                     zoom_up_pressed = True
+                    zoom_all_hitboxes(1)
             elif zoom_down_hitbox.collidepoint((mouseX, mouseY)):
                 if zoom_bar_y > zoom_bar_limits[1]:
                     zoom_bar_y -= zoom_bar_interval
                     zoomVal -= zoom_window_interval
                     zoom_down_pressed = True
+                    zoom_all_hitboxes(-1)
             #left-right scroll        
             if hwheelHitbox.collidepoint((mouseX, mouseY)):
                 if mouseDirection and mouseDirection[0] != 0:
@@ -177,6 +178,7 @@ def main():
         #draw 3D elements   
         glEnable(GL_DEPTH_TEST) 
         Cube()
+
         glDisable(GL_DEPTH_TEST)
 
         #reset stack for next part
