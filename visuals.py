@@ -20,6 +20,25 @@ def Cube():
             glVertex3fv(vertices[vertex])
         x+=1
     glEnd()
+
+#render for cube directly from hitboxes    
+def Cube2():
+    #line render
+    glBegin(GL_LINES)
+    for edge in edges:
+        for vertex in edge:
+            glVertex3fv(vertices2[vertex])
+    glEnd()
+    
+    #surface area render
+    glBegin(GL_QUADS)
+    x=0
+    for surface in surfaces:
+        for vertex in surface:
+            glColor4fv(colors[x])
+            glVertex3fv(vertices2[vertex])
+        x+=1
+    glEnd()
     
 #render for quad (to impose texture on)
     """_params_: 

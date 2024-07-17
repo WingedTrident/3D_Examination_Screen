@@ -8,6 +8,18 @@ hitboxes = {
     "pink": [[1,1,-1],[-1,-1,-1],[-1,1,-1],[1,-1,-1]],
 }
 
+#cube's hitbox vertices
+vertices2 = (
+    hitboxes["red"][0],
+    hitboxes["yellow"][0],
+    hitboxes["green"][0],
+    hitboxes["green"][3],
+    hitboxes["yellow"][1],
+    hitboxes["blue"][0],
+    hitboxes["teal"][1],
+    hitboxes["blue"][2]
+)
+
 #cubes vertices
 vertices= (
     (1, -1, -1),

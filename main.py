@@ -3,7 +3,7 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-from visuals import Cube, drawQuad, Grid
+from visuals import *
 from functions import *
 from texturing import *
 
@@ -107,7 +107,7 @@ def main():
                     mouse_down = False
                     zoom_up_pressed, zoom_down_pressed = False, False 
                     if displayWindow.collidepoint((mouseX, mouseY)):
-                        selected = check_if_hit(cursorX,cursorY,((zoomVal+5))) #get which part of the display was hit
+                        selected = check_if_hit(cursorX,cursorY,(zoom_bar_y//zoom_bar_interval)) #get which part of the display was hit
                         charNum = 0 #reset textbox
                         if selected == None:
                             selected = True
@@ -176,8 +176,8 @@ def main():
         glMultMatrixf(modelMatrix)
         
         #draw 3D elements   
-        glEnable(GL_DEPTH_TEST) 
-        Cube()
+        glEnable(GL_DEPTH_TEST)
+        Cube2()
 
         glDisable(GL_DEPTH_TEST)
 

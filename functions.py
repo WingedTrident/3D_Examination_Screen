@@ -4,6 +4,7 @@ from cube import hitboxes
 
 #check if the given line (the cursor) intersects with the given plane (hitbox)
 def line_plane_intersection(hitbox, cursorX, cursorY, color, zoom):
+    limit = getSquareLimits(zoom)
     A, B, C = array(hitbox[0]), array(hitbox[1]), array(hitbox[2])
     prod = cross((B-A),(C-A))
         
@@ -18,13 +19,15 @@ def line_plane_intersection(hitbox, cursorX, cursorY, color, zoom):
     t = temp / temp2
    
     point = [(o[0]+d[0]*t), (o[1]+d[1]*t), (o[2]+d[2]*t)]
-    point[0] *= 1.12
-    point[2] *= 1.12
     
-    if min(hitbox[0][0],hitbox[1][0],hitbox[2][0],hitbox[3][0]) <= point[0] <= max(hitbox[0][0],hitbox[1][0],hitbox[2][0],hitbox[3][0]):
-        if min(hitbox[0][2],hitbox[1][2],hitbox[2][2],hitbox[3][2]) <= point[2] <= max(hitbox[0][2],hitbox[1][2],hitbox[2][2],hitbox[3][2]):
-            if min(hitbox[0][1],hitbox[1][1],hitbox[2][1],hitbox[3][1]) <= point[1]<= max(hitbox[0][1],hitbox[1][1],hitbox[2][1],hitbox[3][1]):
-                print(color, point, (hitbox[0][0],hitbox[1][0],hitbox[2][0],hitbox[3][0]))
+    minX, maxX = min(hitbox[0][0],hitbox[1][0],hitbox[2][0],hitbox[3][0]), max(hitbox[0][0],hitbox[1][0],hitbox[2][0],hitbox[3][0])
+    minY, maxY = min(hitbox[0][1],hitbox[1][1],hitbox[2][1],hitbox[3][1]), max(hitbox[0][1],hitbox[1][1],hitbox[2][1],hitbox[3][1])
+    minZ, maxZ = min(hitbox[0][2],hitbox[1][2],hitbox[2][2],hitbox[3][2]), max(hitbox[0][2],hitbox[1][2],hitbox[2][2],hitbox[3][2])
+    
+    if max(minX,-limit) <= point[0] <= min(maxX,limit):
+        if max(minZ,-limit) <= point[2] <= min(maxZ,limit):
+            if minY <= point[1] <= maxY:
+                print(color, point, [minX, maxX], [minY, maxY], [minZ, maxZ])
                 return point[1]
   
 #plane rotation     
@@ -74,3 +77,14 @@ def check_if_hit(cursorX,cursorY,zoom):
         else:
             return min(l, key=lambda x: x[1])[0]
     return None
+
+def getSquareLimits(zoom):
+    start = 1
+    if zoom > 0:
+        for i in range(int(zoom)):
+            start *= 1.05
+    elif zoom < 0:
+        for i in range(int(zoom)):
+            start /= 1.05
+    return start
+    
